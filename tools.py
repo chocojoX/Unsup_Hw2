@@ -1,6 +1,11 @@
 import numpy as np
-from munkres import Munkres, print_matrix
+import scipy.io as spio
 
+def load_Yale_data():
+    data = spio.loadmat("data/ExtendedYaleB.mat")
+    labels = data['EYALEB_LABEL']
+    pictures = data['EYALEB_DATA']
+    return pictures, data
 
 def build_cost_matrix(true_labels, predicted_labels, nb_label):
     n = len(true_labels)
