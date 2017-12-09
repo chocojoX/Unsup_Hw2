@@ -32,6 +32,46 @@ def ksubspaces(data, n, d, replicates):
     # n: number of subspaces
     # d: dimension of subspaces
     # replicates: number of restart
+
+    D, N = data.shape
+    """ Initialization """
+    U_matrices = []
+    mu_vectors = []
+    for i in range(n):
+        U = get_random_orthogonal_matrix(D, d)
+        U_matrices.append(U)
+        mu = np.random.rand(D)
+        mu_vectors.append(mu)
+
+    """ Iterations """
+    converged = False
+    Y = np.zeros(d, N)
+    while not converged:
+        """ Find best subspace for each data point """
+        w = np.zeros(n, N)
+        for j in range(N):
+            x = data[:, j]
+            min_dist = 999999999999999
+            best_subspace = -1
+            for subspace_idx in range(n):
+                U = U_matrices[subspace_idx]
+                mu = mu_vectors[subspace_idx]
+                U_Ut = np.dot(U, np.transpose(U))
+                dist = np.sum( (x-mu - np.dot(U_Ut, x-mu))**2 )
+                if dist<min_dist:
+                    min_dist=dist
+                    best_subspace = subspace_idx
+            w[best_subspace, j] = 1
+
+        """ Find an estimation of the best subspaces """
+        for subspace_idx in range(n):
+            idx = np.where(w[subspace_idx, :]==1)
+            mu[subspace_idx] = np.mean(data[:, idx], axis=0)
+
+            covariance = np.sum(np.dot(np.transpose(data[:, i]), data[:, i]) for i in idx)
+            
+
+
     #TODO
     return
 

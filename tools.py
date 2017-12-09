@@ -66,6 +66,17 @@ def build_cost_matrix(true_labels, predicted_labels, nb_label):
     return cost_matrix
 
 
+def get_random_orthogonal_matrix(D, d):
+    # Returns a D x d orthogonal cost_matrix
+    # Method inspired from https://stackoverflow.com/questions/38426349/how-to-create-random-orthonormal-matrix-in-python-numpy
+    if D<d:
+        print("D should be higher than d")
+        import pdb; pdb.set_trace()
+    random_matrix = H = np.random.randn(D, d)
+    Q, r = np.linalg.qr(random_matrix, mode="reduced") # Mode = "reduced" to ensure that Q is of dimensions D x d
+    return Q
+
+
 if __name__=="__main__":
     pict, labels = load_Yale_data()
     compute_affinity_matrix(pict, 5, 5)
