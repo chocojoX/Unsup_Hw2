@@ -30,7 +30,22 @@ def clustering_error(label, groups):
     # label: N-dimensional vector with ground truth labels for a dataset with N points
     # groups: N-dimensional vector with estimated labels for a dataset with N points
     # TODO
-    return
+    nb_label = len(np.unique(label))
+    cost_matrix = build_cost_matrix(label, groups, nb_label)
+
+    m = Munkres()
+    indexes = m.compute(cost_matrix)
+
+    dic = {}
+    for i,j in indexes:
+        dic[j] = i
+    print(dic)
+    error = 0
+    for k in range(len(label)):
+        if label[k] != dic[groups[k]]:
+            error += 1
+
+    return error/len(label)
 
 
 if __name__=="__main__":
