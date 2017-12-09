@@ -1,7 +1,6 @@
 from tools import *
 import numpy as np
 
-
 def SpectralClustering(Affinity, n):
     # Affinity: N by N affinity matrix, where N is the number of points.
     # n: number of groups
@@ -34,4 +33,6 @@ def clustering_error(label, groups):
 
 
 if __name__=="__main__":
+    data, labels = load_Yale_data()
+    print(data.shape)
     pass
