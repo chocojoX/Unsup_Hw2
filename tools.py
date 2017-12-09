@@ -53,10 +53,6 @@ def compute_affinity_matrix(data, K, sigma, load_from_file=True):
 
 
 
-
-
-
-
 def build_cost_matrix(true_labels, predicted_labels, nb_label):
     n = len(true_labels)
     cost_matrix = np.zeros((nb_label,nb_label))
