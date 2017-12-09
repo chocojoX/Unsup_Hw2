@@ -46,8 +46,8 @@ def compute_affinity_matrix(data, K, sigma, load_from_file=False):
             for j in range(1, K+1):
                 # Not taking the lowest distance which would be 0 = d(x, x)
                 dist = distances[lowest[j]]
-                Affinity[i, lowest[j]] += np.exp(-dist**2/(2*sigma**2))/2.
-                Affinity[lowest[j], i] += np.exp(-dist**2/(2*sigma**2))/2.
+                Affinity[i, lowest[j]] += np.exp(-dist**2/(2*sigma**2))/2
+                Affinity[lowest[j], i] += np.exp(-dist**2/(2*sigma**2))/2
                 # Symmetrizes the affinity matrix
         np.save("data/affinity_matrix.npy", Affinity)
     return Affinity
