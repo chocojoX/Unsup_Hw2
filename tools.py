@@ -3,14 +3,16 @@ import scipy.io as spio
 import time
 import os
 
+
 def load_Yale_data():
     data = spio.loadmat("data/ExtendedYaleB.mat")
     labels = data['EYALEB_LABEL']
+    labels = labels[0] - 1
     pictures = data['EYALEB_DATA']
     return pictures, labels
 
 
-def compute_affinity_matrix(data, K, sigma, load_from_file=True):
+def compute_affinity_matrix(data, K, sigma, load_from_file=False):
     # data is D by N
     # K : number of closest neighbours
     # sigma parameter of the gaussian
@@ -20,7 +22,7 @@ def compute_affinity_matrix(data, K, sigma, load_from_file=True):
 
     # Computes distance matrix
     # TODO vectorize this function for the sake of efficiency
-    if os.path.exists("data/distance_matrix.npy") and load_from_file:
+    if os.path.exists("data/distance_matrix.npy"):
         distance_matrix = np.load("data/distance_matrix.npy")
     else:
         print("Computing distance matrix, can take up to 2 minutes...")
@@ -51,8 +53,6 @@ def compute_affinity_matrix(data, K, sigma, load_from_file=True):
     return Affinity
 
 
-
-
 def build_cost_matrix(true_labels, predicted_labels, nb_label):
     n = len(true_labels)
     cost_matrix = np.zeros((nb_label,nb_label))
@@ -64,6 +64,7 @@ def build_cost_matrix(true_labels, predicted_labels, nb_label):
                     nb_error += 1
             cost_matrix[i,j] = nb_error
     return cost_matrix
+
 
 if __name__=="__main__":
     pict, labels = load_Yale_data()
