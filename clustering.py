@@ -1,6 +1,8 @@
 from tools import *
 import numpy as np
 from sklearn.cluster import KMeans
+from munkres import Munkres
+
 
 def SpectralClustering(Affinity, n):
     # Affinity: N by N affinity matrix, where N is the number of points.
@@ -42,7 +44,7 @@ def SSC(data, n, tau, mu2):
     return
 
 
-def clustering_error(label, groups):
+def clustering_error(label, groups, verbose=0):
     # label: N-dimensional vector with ground truth labels for a dataset with N points
     # groups: N-dimensional vector with estimated labels for a dataset with N points
     # TODO
@@ -55,7 +57,8 @@ def clustering_error(label, groups):
     dic = {}
     for i,j in indexes:
         dic[j] = i
-    print(dic)
+    if verbose>1:
+        print(dic)
     error = 0
     for k in range(len(label)):
         if label[k] != dic[groups[k]]:
@@ -69,5 +72,6 @@ if __name__=="__main__":
     affinity = compute_affinity_matrix(data, K=5, sigma=200000)
     print("Starting spectral clustering")
     pred_labels = SpectralClustering(affinity, n=38)
-    print(pred_labels)
+    error = clustering_error(pred_labels, labels)
+    print("prediction error : %.2f%%" %(100*error))
     pass
