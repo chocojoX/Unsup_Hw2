@@ -19,10 +19,9 @@ def SpectralClustering(Affinity, n):
     Y = eig_vect[:, eig_values_order[:n]]
 
     # Initialize K-means
-    kmeans = Kmeans(n_cluster = n)
+    kmeans = KMeans(n_clusters = n)
     kmeans.fit(Y)
     predicted_labels = kmeans.predict(Y)
-
     return predicted_labels
 
 
@@ -52,5 +51,8 @@ def clustering_error(label, groups):
 
 if __name__=="__main__":
     data, labels = load_Yale_data()
-    print(data.shape)
+    affinity = compute_affinity_matrix(data, K=5, sigma=200000)
+    print("Starting spectral clustering")
+    pred_labels = SpectralClustering(affinity, n=38)
+    print(pred_labels)
     pass
