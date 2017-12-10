@@ -12,6 +12,13 @@ def load_Yale_data():
     return pictures, labels
 
 
+def SVD(X):
+    # Return, U, Sigma, V such that X = U.Sigma.V^T
+    U, Sigma, V = np.linalg.svd(X, full_matrices=False)
+    # Careful, np.linalg.svd return U, sigma, transpose(V) --> V need to be transposed.
+    return U, np.diag(Sigma), np.transpose(V)
+
+
 def compute_affinity_matrix(data, K, sigma, n_pictures=2414, load_from_file=False):
     # data is D by N
     # K : number of closest neighbours

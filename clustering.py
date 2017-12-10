@@ -36,44 +36,63 @@ def ksubspaces(data, n, d, replicates):
     D, N = data.shape
     """ Initialization """
     U_matrices = []
+    U_Ut_matrices = []
     mu_vectors = []
     for i in range(n):
         U = get_random_orthogonal_matrix(D, d)
         U_matrices.append(U)
+        U_Ut_matrices.append(np.dot(U, np.transpose(U)))
         mu = np.random.rand(D)
         mu_vectors.append(mu)
 
     """ Iterations """
     converged = False
-    Y = np.zeros(d, N)
+    Y = np.zeros((d, N))
+    total_distance = 99999999999999999999999
     while not converged:
+        old_total_distance = total_distance
+        total_distance = 0
+
         """ Find best subspace for each data point """
-        w = np.zeros(n, N)
+        w = np.zeros((n, N))
         for j in range(N):
             x = data[:, j]
-            min_dist = 999999999999999
+            min_dist = 999999999999999999
             best_subspace = -1
             for subspace_idx in range(n):
-                U = U_matrices[subspace_idx]
+                # U = U_matrices[subspace_idx]
                 mu = mu_vectors[subspace_idx]
-                U_Ut = np.dot(U, np.transpose(U))
-                dist = np.sum( (x-mu - np.dot(U_Ut, x-mu))**2 )
+                U_Ut = U_Ut_matrices[subspace_idx]
+                dist = np.sum( (np.dot(np.eye(D)-U_Ut, x-mu))**2 )
                 if dist<min_dist:
                     min_dist=dist
                     best_subspace = subspace_idx
             w[best_subspace, j] = 1
+            total_distance += min_dist/N
 
-        """ Find an estimation of the best subspaces """
+        """ Find an estimation of the best subspaces given segmentation """
         for subspace_idx in range(n):
-            idx = np.where(w[subspace_idx, :]==1)
-            mu[subspace_idx] = np.mean(data[:, idx], axis=0)
+            idx = np.where(w[subspace_idx, :]==1)[0]
+            mu = np.zeros((data.shape[0]))
+            for l in idx:
+                mu += data[:, l]/len(idx)
+            mu_vectors[subspace_idx] = mu
 
-            covariance = np.sum(np.dot(np.transpose(data[:, i]), data[:, i]) for i in idx)
+            covariance = np.sum(np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx)
+            U, S, V = SVD(covariance)
+            U = U[:, :d]
+            U_matrices[subspace_idx] = U
+            U_Ut_matrices[subspace_idx] = np.dot(U, np.transpose(U))
 
+        print(total_distance)
+        if np.abs(old_total_distance- total_distance)<1:
+            converged = True
 
+    pred_labels = []
+    for j in range(N):
+        pred_labels.append(np.where(w[:, j]==1)[0][0])
+    return pred_labels
 
-    #TODO
-    return
 
 
 def SSC(data, n, tau, mu2):
@@ -109,9 +128,16 @@ def clustering_error(label, groups, verbose=0):
 
 if __name__=="__main__":
     data, labels = load_Yale_data()
-    affinity = compute_affinity_matrix(data, K=5, sigma=200000)
-    print("Starting spectral clustering")
-    pred_labels = SpectralClustering(affinity, n=38)
+    # affinity = compute_affinity_matrix(data, K=5, sigma=200000)
+    # print("Starting spectral clustering")
+    # pred_labels = SpectralClustering(affinity, n=38)
+    # error = clustering_error(pred_labels, labels)
+    # print("prediction error : %.2f%%" %(100*error))
+
+    pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
     error = clustering_error(pred_labels, labels)
     print("prediction error : %.2f%%" %(100*error))
+
+
+
     pass
