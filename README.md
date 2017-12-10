@@ -3,4 +3,7 @@ Homework 2 for Unsupervised learning
 
 
 To run the code, please download the following packages :
-pip install munkres
+- munkres
+- sklearn
+- scipy
+- numpy

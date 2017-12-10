@@ -106,7 +106,7 @@ def SSC(data, n, tau, mu2):
 def clustering_error(label, groups, verbose=0):
     # label: N-dimensional vector with ground truth labels for a dataset with N points
     # groups: N-dimensional vector with estimated labels for a dataset with N points
-    # TODO
+
     nb_label = len(np.unique(label))
     cost_matrix = build_cost_matrix(label, groups, nb_label)
 
@@ -135,6 +135,8 @@ if __name__=="__main__":
     # print("prediction error : %.2f%%" %(100*error))
 
     pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
+    print(sorted(np.unique(labels)))
+    print(sorted(np.unique(pred_labels)))
     error = clustering_error(pred_labels, labels)
     print("prediction error : %.2f%%" %(100*error))
 
