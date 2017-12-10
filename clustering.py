@@ -49,6 +49,7 @@ def ksubspaces(data, n, d, replicates):
     converged = False
     Y = np.zeros((d, N))
     total_distance = 99999999999999999999999
+    w_old = np.zeros((n, N))
     while not converged:
         old_total_distance = total_distance
         total_distance = 0
@@ -97,20 +98,21 @@ def ksubspaces(data, n, d, replicates):
                 mu += data[:, l]/len(idx)
             mu_vectors[subspace_idx] = mu
 
-            covariance = np.sum(np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx)
-            covariance.shape
+            covariance = np.sum([np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx])
+            print(covariance.shape)
             U, S, V = SVD(covariance)
             U = U[:, :d]
             U_matrices[subspace_idx] = U
             U_Ut_matrices[subspace_idx] = np.dot(U, np.transpose(U))
 
-        print(total_distance)
-        if np.abs(old_total_distance- total_distance)<1:
+        #print(total_distance)
+        if w_old == w:
             converged = True
+        w_old = np.copy(w)
 
-    pred_labels = []
-    for j in range(N):
-        pred_labels.append(np.where(w[:, j]==1)[0][0])
+    pred_labels = np.argmax(w, axis=0)
+    #for j in range(N):
+    #    pred_labels.append(np.where(w[:, j]==1)[0][0])
     return pred_labels
 
 
