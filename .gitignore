@@ -1,2 +1,5 @@
 data/aff*
 data/dist*
+test_notebook.ipynb
+.ipynb_checkpoints
+__pychache__
