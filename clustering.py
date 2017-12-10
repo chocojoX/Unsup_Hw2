@@ -1,6 +1,6 @@
 from tools import *
 import numpy as np
-from sklearn.cluster import KMeans
+from sklearn import cluster
 from munkres import Munkres
 
 
@@ -14,14 +14,14 @@ def SpectralClustering(Affinity, n):
     L = D - Affinity
 
     eig_val, eig_vect = np.linalg.eig(L)
-    eig_values_order = np.argsort(eig_val)
+    eig_values_order = np.argsort(eig_val)[1:]
 
     # Get the n lowest eigen values and eigen vectors associated to them
     eig_val = eig_val[eig_values_order[:n]]
     Y = eig_vect[:, eig_values_order[:n]]
 
     # Initialize K-means
-    kmeans = KMeans(n_clusters = n)
+    kmeans = cluster.KMeans(n_clusters = n)
     kmeans.fit(Y)
     predicted_labels = kmeans.predict(Y)
     return predicted_labels
@@ -69,7 +69,7 @@ def ksubspaces(data, n, d, replicates):
             mu[subspace_idx] = np.mean(data[:, idx], axis=0)
 
             covariance = np.sum(np.dot(np.transpose(data[:, i]), data[:, i]) for i in idx)
-            
+
 
 
     #TODO

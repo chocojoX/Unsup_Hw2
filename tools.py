@@ -12,12 +12,12 @@ def load_Yale_data():
     return pictures, labels
 
 
-def compute_affinity_matrix(data, K, sigma, load_from_file=False):
+def compute_affinity_matrix(data, K, sigma, n_pictures=2414, load_from_file=False):
     # data is D by N
     # K : number of closest neighbours
     # sigma parameter of the gaussian
     D, N = data.shape
-    Affinity = np.zeros((N, N))
+    Affinity = np.zeros((n_pictures, n_pictures))
     distance_matrix = np.zeros((N, N))
 
     # Computes distance matrix
@@ -40,16 +40,17 @@ def compute_affinity_matrix(data, K, sigma, load_from_file=False):
     if os.path.exists("data/affinity_matrix.npy") and load_from_file:
         Affinity = np.load("data/affinity_matrix.npy")
     else:
-        for i in range(N):
+        distance_matrix = distance_matrix[:n_pictures, :n_pictures]
+        for i in range(n_pictures):
             distances = distance_matrix[i, :]
             lowest = np.argsort(distances)[:(K+1)]
             for j in range(1, K+1):
                 # Not taking the lowest distance which would be 0 = d(x, x)
                 dist = distances[lowest[j]]
-                Affinity[i, lowest[j]] += np.exp(-dist**2/(2*sigma**2))/2
-                Affinity[lowest[j], i] += np.exp(-dist**2/(2*sigma**2))/2
+                Affinity[i, lowest[j]] += np.exp(-dist/(2*sigma**2))/2
+                Affinity[lowest[j], i] += np.exp(-dist/(2*sigma**2))/2
                 # Symmetrizes the affinity matrix
-        np.save("data/affinity_matrix.npy", Affinity)
+        # np.save("data/affinity_matrix.npy", Affinity)
     return Affinity
 
 
