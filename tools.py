@@ -2,7 +2,7 @@ import numpy as np
 import scipy.io as spio
 import time
 import os
-
+from scipy.spatial.distance import cdist
 
 def load_Yale_data():
     data = spio.loadmat("data/ExtendedYaleB.mat")
@@ -21,18 +21,23 @@ def compute_affinity_matrix(data, K, sigma, load_from_file=False):
     distance_matrix = np.zeros((N, N))
 
     # Computes distance matrix
-    # TODO vectorize this function for the sake of efficiency
+
     if os.path.exists("data/distance_matrix.npy"):
         distance_matrix = np.load("data/distance_matrix.npy")
     else:
-        print("Computing distance matrix, can take up to 2 minutes...")
-        t0 = time.time()
+        print("Computing distance matrix")
+
+        """t0 = time.time()
         for i in range(N):
             for j in range(i+1, N):
                 dist = np.sum((data[:, i] - data[:, j])**2)
                 distance_matrix[i, j] = dist
                 distance_matrix[j, i] = dist
-        t1 = time.time()
+        t1 = time.time()"""
+
+        #We need to square it to be equal to before, but to we really need?
+        distance_matrix = cdist(data.T,data.T)**2
+
         print("Time to compute distance matrix : %.1f s" %(t1-t0))
         np.save("data/distance_matrix.npy", distance_matrix)
 
