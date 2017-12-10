@@ -69,7 +69,7 @@ def ksubspaces(data, n, d, replicates):
             mu[subspace_idx] = np.mean(data[:, idx], axis=0)
 
             covariance = np.sum(np.dot(np.transpose(data[:, i]), data[:, i]) for i in idx)
-            
+
 
 
     #TODO
