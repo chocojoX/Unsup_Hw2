@@ -55,6 +55,7 @@ def ksubspaces(data, n, d, replicates):
 
         """ Find best subspace for each data point """
         w = np.zeros((n, N))
+        """
         for j in range(N):
             x = data[:, j]
             min_dist = 999999999999999999
@@ -67,8 +68,26 @@ def ksubspaces(data, n, d, replicates):
                 if dist<min_dist:
                     min_dist=dist
                     best_subspace = subspace_idx
+
             w[best_subspace, j] = 1
             total_distance += min_dist/N
+        """
+        first = True
+        for subspace_idx in range(n):
+            mu = mu_vectors[subspace_idx].reshape(D,1)
+            U_Ut = U_Ut_matrices[subspace_idx]
+            if first:
+                distances = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2, axis=0)
+                first = False
+            else:
+                distances = np.stack((distances,
+                                      np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2,
+                                      axis=0)))
+
+        indexes = np.argmin(distances,axis=0)
+
+        for j in range(N):
+            w[indexes[j],j] = 1
 
         """ Find an estimation of the best subspaces given segmentation """
         for subspace_idx in range(n):
@@ -79,6 +98,7 @@ def ksubspaces(data, n, d, replicates):
             mu_vectors[subspace_idx] = mu
 
             covariance = np.sum(np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx)
+            covariance.shape
             U, S, V = SVD(covariance)
             U = U[:, :d]
             U_matrices[subspace_idx] = U
@@ -106,6 +126,8 @@ def SSC(data, n, tau, mu2):
 def clustering_error(label, groups, verbose=0):
     # label: N-dimensional vector with ground truth labels for a dataset with N points
     # groups: N-dimensional vector with estimated labels for a dataset with N points
+
+    assert len(label) == len(groups)
 
     nb_label = len(np.unique(label))
     cost_matrix = build_cost_matrix(label, groups, nb_label)
@@ -135,11 +157,11 @@ if __name__=="__main__":
     # print("prediction error : %.2f%%" %(100*error))
 
     pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
-    print(sorted(np.unique(labels)))
-    print(sorted(np.unique(pred_labels)))
-    error = clustering_error(pred_labels, labels)
-    print("prediction error : %.2f%%" %(100*error))
 
+    error = clustering_error(labels[:128], pred_labels, verbose = True)
+    print("prediction error : %.2f%%" %(100*error))
+    print(labels[:128])
+    print(pred_labels)
 
 
     pass
