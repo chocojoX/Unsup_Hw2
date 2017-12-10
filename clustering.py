@@ -48,11 +48,13 @@ def ksubspaces(data, n, d, replicates):
     """ Iterations """
     converged = False
     Y = np.zeros((d, N))
-    total_distance = 99999999999999999999999
+    #total_distance = 99999999999999999999999
     w_old = np.zeros((n, N))
-    while not converged:
-        old_total_distance = total_distance
-        total_distance = 0
+    n_iter = 0
+    while not converged and n_iter < 8:
+        n_iter += 1
+        #old_total_distance = total_distance
+        #total_distance = 0
 
         """ Find best subspace for each data point """
         w = np.zeros((n, N))
@@ -98,7 +100,7 @@ def ksubspaces(data, n, d, replicates):
                 mu += data[:, l]/len(idx)
             mu_vectors[subspace_idx] = mu
 
-            covariance = np.sum([np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx])
+            covariance = np.sum(np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx)
             print(covariance.shape)
             U, S, V = SVD(covariance)
             U = U[:, :d]
@@ -106,7 +108,7 @@ def ksubspaces(data, n, d, replicates):
             U_Ut_matrices[subspace_idx] = np.dot(U, np.transpose(U))
 
         #print(total_distance)
-        if w_old == w:
+        if np.sum(np.abs(w_old - w)) == 0:
             converged = True
         w_old = np.copy(w)
 
