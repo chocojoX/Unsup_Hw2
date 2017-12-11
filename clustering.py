@@ -27,7 +27,7 @@ def SpectralClustering(Affinity, n):
     return predicted_labels
 
 
-def ksubspaces(data, n, d, replicates):
+def ksubspaces(data, n, d, replicates=1):
     # data: D by N data matrix.
     # n: number of subspaces
     # d: dimension of subspaces
@@ -52,6 +52,7 @@ def ksubspaces(data, n, d, replicates):
     w_old = np.zeros((n, N))
     n_iter = 0
     while not converged and n_iter < 8:
+        print("n_iter = %i"%(n_iter))
         n_iter += 1
         #old_total_distance = total_distance
         #total_distance = 0
@@ -81,11 +82,13 @@ def ksubspaces(data, n, d, replicates):
             U_Ut = U_Ut_matrices[subspace_idx]
             if first:
                 distances = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2, axis=0)
+                distances = distances.reshape(1,len(distances))
                 first = False
             else:
-                distances = np.stack((distances,
-                                      np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2,
-                                      axis=0)))
+                a = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2,
+                axis=0)
+                a = a.reshape(1, len(a))
+                distances = np.concatenate((distances,a),axis = 0)
 
         indexes = np.argmin(distances,axis=0)
 
@@ -113,8 +116,6 @@ def ksubspaces(data, n, d, replicates):
         w_old = np.copy(w)
 
     pred_labels = np.argmax(w, axis=0)
-    #for j in range(N):
-    #    pred_labels.append(np.where(w[:, j]==1)[0][0])
     return pred_labels
 
 
