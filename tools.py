@@ -64,7 +64,6 @@ def compute_affinity_matrix(data, K, sigma, n_pictures=2414, load_from_file=Fals
                 Affinity[lowest[j], i] += np.exp(-dist/(2*sigma**2))/2
                 # Symmetrizes the affinity matrix
         # np.save("data/affinity_matrix.npy", Affinity)
-    print(np.sum(Affinity, axis=0))
     return Affinity
 
 

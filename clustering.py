@@ -86,7 +86,8 @@ def ksubspaces(data, n, d, replicates=1):
                 first = False
             else:
                 a = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2,
-                axis=0)
+                            axis=0
+                          )
                 a = a.reshape(1, len(a))
                 distances = np.concatenate((distances,a),axis = 0)
 
@@ -96,19 +97,25 @@ def ksubspaces(data, n, d, replicates=1):
             w[indexes[j],j] = 1
 
         """ Find an estimation of the best subspaces given segmentation """
+        mu_vectors = []
+        U_matrices = []
+        U_Ut_matrices = []
         for subspace_idx in range(n):
             idx = np.where(w[subspace_idx, :]==1)[0]
             mu = np.zeros((data.shape[0]))
             for l in idx:
                 mu += data[:, l]/len(idx)
-            mu_vectors[subspace_idx] = mu
+            mu_vectors.append(mu)
 
-            covariance = np.sum(np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx)
+            covariance = np.sum(
+                        np.dot((data[:, l]-mu).reshape(-1, 1), (data[:, l]-mu).reshape(1, -1)) for l in idx
+                        )
 
             U, S, V = SVD(covariance)
+            assert all(S[i,i] >= S[i+1,i+1] for i in range(len(S)-1))
             U = U[:, :d]
-            U_matrices[subspace_idx] = U
-            U_Ut_matrices[subspace_idx] = np.dot(U, np.transpose(U))
+            U_matrices.append(U)
+            U_Ut_matrices.append(np.dot(U, U.T))
 
         #print(total_distance)
         if np.sum(np.abs(w_old - w)) == 0:
@@ -143,7 +150,7 @@ def clustering_error(label, groups, verbose=0):
     dic = {}
     for i,j in indexes:
         dic[j] = i
-    if verbose>1:
+    if verbose>0:
         print(dic)
     error = 0
     for k in range(len(label)):
@@ -155,18 +162,19 @@ def clustering_error(label, groups, verbose=0):
 
 if __name__=="__main__":
     data, labels = load_Yale_data()
-    affinity = compute_affinity_matrix(data, K=3, sigma=2e6)
-    print("Starting spectral clustering")
-    pred_labels = SpectralClustering(affinity, n=38)
-    error = clustering_error(pred_labels, labels)
+
+    #affinity = compute_affinity_matrix(data, K=5, sigma=2e6)
+
+    #pred_labels = SpectralClustering(affinity, n=38)
+    #error = clustering_error(pred_labels, labels, verbose=1)
+
+
+    pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
+
+    error = clustering_error(labels[:128], pred_labels, verbose = True)
     print("prediction error : %.2f%%" %(100*error))
-
-    #pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
-
-    #error = clustering_error(labels[:128], pred_labels, verbose = True)
-    #print("prediction error : %.2f%%" %(100*error))
-    #print(labels[:128])
-    #print(pred_labels)
+    print(labels[:128])
+    print(pred_labels)
 
 
     pass
