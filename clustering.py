@@ -53,6 +53,7 @@ def ksubspaces(data, n, d, replicates):
     n_iter = 0
     while not converged and n_iter < 8:
         n_iter += 1
+        print("it")
         #old_total_distance = total_distance
         #total_distance = 0
 
@@ -86,7 +87,7 @@ def ksubspaces(data, n, d, replicates):
                 distances = np.stack((distances,
                                       np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2,
                                       axis=0)))
-
+            print(distances.shape)
         indexes = np.argmin(distances,axis=0)
 
         for j in range(N):
@@ -101,7 +102,7 @@ def ksubspaces(data, n, d, replicates):
             mu_vectors[subspace_idx] = mu
 
             covariance = np.sum(np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx)
-            print(covariance.shape)
+
             U, S, V = SVD(covariance)
             U = U[:, :d]
             U_matrices[subspace_idx] = U
