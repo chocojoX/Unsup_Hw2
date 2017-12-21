@@ -7,10 +7,8 @@ from munkres import Munkres
 def SpectralClustering(Affinity, n):
     # Affinity: N by N affinity matrix, where N is the number of points.
     # n: number of groups
-    degrees = []
-    for i in range(Affinity.shape[0]):
-        degrees.append(np.sum(Affinity[i, :]))
-    D = np.diag(degrees)
+
+    D = np.diag(np.sum(Affinity,axis=1))
     L = D - Affinity
 
     eig_val, eig_vect = np.linalg.eig(L)
@@ -18,8 +16,9 @@ def SpectralClustering(Affinity, n):
 
     # Get the n lowest eigen values and eigen vectors associated to them
     eig_val = eig_val[eig_values_order[:n]]
-    Y = eig_vect[:, eig_values_order[:n]]
 
+    Y = eig_vect[:, eig_values_order[:n]]
+    Y = Y / np.linalg.norm(Y, axis=1).reshape(-1,1)
     # Initialize K-means
     kmeans = cluster.KMeans(n_clusters = n)
     kmeans.fit(Y)
@@ -156,18 +155,18 @@ def clustering_error(label, groups, verbose=0):
 
 if __name__=="__main__":
     data, labels = load_Yale_data()
-    # affinity = compute_affinity_matrix(data, K=5, sigma=200000)
-    # print("Starting spectral clustering")
-    # pred_labels = SpectralClustering(affinity, n=38)
-    # error = clustering_error(pred_labels, labels)
-    # print("prediction error : %.2f%%" %(100*error))
-
-    pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
-
-    error = clustering_error(labels[:128], pred_labels, verbose = True)
+    affinity = compute_affinity_matrix(data, K=3, sigma=2e6)
+    print("Starting spectral clustering")
+    pred_labels = SpectralClustering(affinity, n=38)
+    error = clustering_error(pred_labels, labels)
     print("prediction error : %.2f%%" %(100*error))
-    print(labels[:128])
-    print(pred_labels)
+
+    #pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
+
+    #error = clustering_error(labels[:128], pred_labels, verbose = True)
+    #print("prediction error : %.2f%%" %(100*error))
+    #print(labels[:128])
+    #print(pred_labels)
 
 
     pass
