@@ -112,7 +112,6 @@ def ksubspaces(data, n, d, replicates=1):
                         )
 
             U, S, V = SVD(covariance)
-            assert all(S[i,i] >= S[i+1,i+1] for i in range(len(S)-1))
             U = U[:, :d]
             U_matrices.append(U)
             U_Ut_matrices.append(np.dot(U, U.T))
@@ -169,11 +168,11 @@ if __name__=="__main__":
     #error = clustering_error(pred_labels, labels, verbose=1)
 
 
-    pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
+    pred_labels = ksubspaces(data[:,:2*64], 2, 3, 1)
 
-    error = clustering_error(labels[:128], pred_labels, verbose = True)
+    error = clustering_error(labels[:2*64], pred_labels, verbose = True)
     print("prediction error : %.2f%%" %(100*error))
-    print(labels[:128])
+    print(labels[:2*64])
     print(pred_labels)
 
 
