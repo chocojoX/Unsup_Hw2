@@ -109,12 +109,13 @@ def Lasso_minimization(data, mu2, tau):
     XT_X = np.dot(data.T, data)
     converged = False
     while not converged:
+        C_old = C
         Z = np.dot(np.linalg.inv(tau*XT_X + mu2*np.identity(N)), tau*XT_X + mu2*(C - Gamma2/mu2))
         C = shrinkage(Z + Gamma2/mu2, 1/mu2)
         C = C - np.diag(np.diag(C))
         Gamma2 = Gamma2 + mu2*(Z-C)
         i += 1
-        converged = (i > 50)
+        converged = (i > 100) or ((np.sum(np.abs(C-C_old))<0.1) and i>5)
     return C
 
 def shrinkage(X, tau):
