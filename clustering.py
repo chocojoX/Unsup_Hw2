@@ -44,10 +44,10 @@ def ksubspaces(data, n, d, replicates=1):
         U_Ut_matrices = []
         mu_vectors = []
         for i in range(n):
-            U = get_random_orthogonal_matrix(D, d)
+            U = 0.1*get_random_orthogonal_matrix(D, d)
             U_matrices.append(U)
             U_Ut_matrices.append(np.dot(U, np.transpose(U)))
-            mu = np.random.rand(D)
+            mu = 0.*np.random.rand(D)
             mu_vectors.append(mu)
 
         """ Iterations """
