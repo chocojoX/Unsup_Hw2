@@ -11,16 +11,35 @@ def test_SC():
 
     best_error=100
     best_params = {}
-    for sigma in [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1]:
-        for K in [3, 5, 7, 10, 15]:
+    perfs = {}
+    sigmas = [0.1, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.7, 0.9, 1]
+    Ks = [1, 2, 3, 4, 5, 6, 7, 8]
+    for sigma in sigmas:
+        for K in Ks:
             affinity = compute_affinity_matrix(data, K=K, sigma=sigma, n_pictures=n_max)
             pred_labels = SpectralClustering(affinity, n=n_individuals)
             error = clustering_error(pred_labels, labels)
+            perfs[(K, sigma)] = error
             if error<best_error:
                 best_error = error
                 best_params['K']=K
                 best_params['sigma'] = sigma
     print("Testing on individual 1-2 finished, best parameters are : K=%i, sigma=%.1f" %(best_params['K'], best_params['sigma']))
+    import matplotlib.pyplot as plt
+    to_plot_K_fixed = [perfs[(best_params['K'], sigma)] for sigma in sigmas]
+    plt.plot(sigmas, to_plot_K_fixed)
+    plt.title("Evolution of error with Sigma at optimal K (with individuals 1-2)")
+    plt.ylabel("Error")
+    plt.xlabel("sigma")
+    plt.show()
+
+    to_plot_sigma_fixed = [perfs[(K, best_params['sigma'])] for K in Ks]
+    plt.plot(Ks, to_plot_sigma_fixed)
+    plt.title("Evolution of error with K at optimal Sigma (with individuals 1-2)")
+    plt.ylabel("Error")
+    plt.xlabel("K")
+    plt.show()
+
     K = best_params['K']
     sigma = best_params['sigma']
     for n_individuals in [2, 10, 20, 30, 38]:
