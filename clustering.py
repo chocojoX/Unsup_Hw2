@@ -33,79 +33,84 @@ def ksubspaces(data, n, d, replicates=1):
     # n: number of subspaces
     # d: dimension of subspaces
     # replicates: number of restart
-
+    all_distances = []
+    all_labels = []
     D, N = data.shape
-    """ Initialization """
-    U_matrices = []
-    U_Ut_matrices = []
-    mu_vectors = []
-    for i in range(n):
-        U = get_random_orthogonal_matrix(D, d)
-        U_matrices.append(U)
-        U_Ut_matrices.append(np.dot(U, np.transpose(U)))
-        mu = np.random.rand(D)
-        mu_vectors.append(mu)
 
-    """ Iterations """
-    converged = False
-    Y = np.zeros((d, N))
-    #total_distance = 99999999999999999999999
-    w_old = np.zeros((n, N))
-    n_iter = 0
-    while not converged and n_iter < 10:
-        n_iter += 1
-
-        """ Find best subspace for each data point """
-        w = np.zeros((n, N))
-        first = True
-        for subspace_idx in range(n):
-            mu = mu_vectors[subspace_idx].reshape(D,1)
-            U_Ut = U_Ut_matrices[subspace_idx]
-            if first:
-                distances = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2, axis=0)
-                distances = distances.reshape(1,len(distances))
-                first = False
-            else:
-                a = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2,
-                            axis=0
-                          )
-                a = a.reshape(1, len(a))
-                distances = np.concatenate((distances,a),axis = 0)
-
-        indexes = np.argmin(distances,axis=0)
-
-        for j in range(N):
-            w[indexes[j],j] = 1
-
-        """ Find an estimation of the best subspaces given segmentation """
-        mu_vectors = []
+    for rep in range(replicates):
+        print(rep)
+        """ Initialization """
         U_matrices = []
         U_Ut_matrices = []
-        for subspace_idx in range(n):
-            t_mu=time.time()
-            idx = np.where(w[subspace_idx, :]==1)[0]
-            mu = np.zeros((data.shape[0]))
-            for l in idx:
-                mu += data[:, l]/len(idx)
+        mu_vectors = []
+        for i in range(n):
+            U = get_random_orthogonal_matrix(D, d)
+            U_matrices.append(U)
+            U_Ut_matrices.append(np.dot(U, np.transpose(U)))
+            mu = np.random.rand(D)
             mu_vectors.append(mu)
 
-            covariance = np.sum(
-                        np.dot((data[:, l]-mu).reshape(-1, 1), (data[:, l]-mu).reshape(1, -1)) for l in idx
-                        )
+        """ Iterations """
+        converged = False
+        Y = np.zeros((d, N))
+        w_old = np.zeros((n, N))
+        n_iter = 0
+        while not converged and n_iter < 10:
+            n_iter += 1
 
-            covariance = np.dot(data[:, idx], np.transpose(data[:, idx]))
-            U = SVD(covariance, d=d)
-            U = U[:, :d]
-            U_matrices.append(U)
-            U_Ut_matrices.append(np.dot(U, U.T))
+            """ Find best subspace for each data point """
+            w = np.zeros((n, N))
+            first = True
+            for subspace_idx in range(n):
+                mu = mu_vectors[subspace_idx].reshape(D,1)
+                U_Ut = U_Ut_matrices[subspace_idx]
+                if first:
+                    distances = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2, axis=0)
+                    distances = distances.reshape(1,len(distances))
+                    first = False
+                else:
+                    a = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2,
+                                axis=0
+                              )
+                    a = a.reshape(1, len(a))
+                    distances = np.concatenate((distances,a),axis = 0)
 
-        #print(total_distance)
-        if np.sum(np.abs(w_old - w)) == 0:
-            converged = True
-        w_old = np.copy(w)
+            indexes = np.argmin(distances,axis=0)
+            total_distance = np.sum([distances[indexes[k], k] for k in range(len(indexes))])
 
-    pred_labels = np.argmax(w, axis=0)
-    return pred_labels
+            for j in range(N):
+                w[indexes[j],j] = 1
+
+            """ Find an estimation of the best subspaces given segmentation """
+            mu_vectors = []
+            U_matrices = []
+            U_Ut_matrices = []
+            for subspace_idx in range(n):
+                t_mu=time.time()
+                idx = np.where(w[subspace_idx, :]==1)[0]
+                mu = np.zeros((data.shape[0]))
+                for l in idx:
+                    mu += data[:, l]/len(idx)
+                mu_vectors.append(mu)
+
+                covariance = np.dot(data[:, idx], np.transpose(data[:, idx]))
+                U = SVD(covariance, d=d)
+                U = U[:, :d]
+                U_matrices.append(U)
+                U_Ut_matrices.append(np.dot(U, U.T))
+
+            #print(total_distance)
+            if np.sum(np.abs(w_old - w)) == 0:
+                converged = True
+            w_old = np.copy(w)
+
+        pred_labels = np.argmax(w, axis=0)
+        all_distances.append(total_distance)
+        all_labels.append(pred_labels)
+
+    # Return result which obtained the best objective score
+    best_replicate = np.argmin(all_distances)
+    return all_labels[best_replicate]
 
 
 
