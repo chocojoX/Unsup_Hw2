@@ -27,12 +27,11 @@ def partial_SVD(X, d=2000):
     return U
 
 
-def compute_affinity_matrix(data, K, sigma, load_from_file=False, verbose=0):
+def compute_affinity_matrix(data, K, sigma, n_pictures, load_from_file=False, verbose=0):
     # data is D by N
     # K : number of closest neighbours
     # sigma parameter of the gaussian
     D, N = data.shape
-    n_pictures = N
     data_normalized = data/(np.linalg.norm(data, axis=0).reshape(1,-1))
 
     Affinity = np.zeros((n_pictures, n_pictures))
@@ -40,26 +39,24 @@ def compute_affinity_matrix(data, K, sigma, load_from_file=False, verbose=0):
 
     # Computes distance matrix
 
-    if os.path.exists("data/distance_matrix.npy") and load_from_file:
+    if os.path.exists("data/distance_matrix.npy"):
         distance_matrix = np.load("data/distance_matrix.npy")
     else:
-        if verbose>0:
-            print("Computing distance matrix")
+        print("Computing distance matrix, this may take a while but will only be performed once")
 
         t0 = time.time()
-        """
+        data_total, _ = load_Yale_data()
+        data_total = data_total/(np.linalg.norm(data_total, axis=0).reshape(1,-1))
         for i in range(N):
             for j in range(i+1, N):
-                dist = np.sum((data[:, i] - data[:, j])**2)
+                dist = np.sum((data_total[:, i] - data_total[:, j])**2)
                 distance_matrix[i, j] = dist
                 distance_matrix[j, i] = dist
-        """
 
-        distance_matrix = cdist(data_normalized.T,data_normalized.T, 'sqeuclidean')
+        distance_matrix = cdist(data_total.T,data_total.T, 'sqeuclidean')
         t1 = time.time()
-        if verbose>0:
-            print("Time to compute distance matrix : %.1f s" %(t1-t0))
-        #np.save("data/distance_matrix.npy", distance_matrix)
+        print("Time to compute distance matrix : %.1f s" %(t1-t0))
+        np.save("data/distance_matrix.npy", distance_matrix)
 
     # Computes affinity matrix
     if os.path.exists("data/affinity_matrix.npy") and load_from_file:
