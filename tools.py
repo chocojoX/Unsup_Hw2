@@ -90,8 +90,35 @@ def get_random_orthogonal_matrix(D, d):
     Q, r = np.linalg.qr(random_matrix, mode="reduced") # Mode = "reduced" to ensure that Q is of dimensions D x d
     return Q
 
+def Lasso_minimization(data, mu2, tau):
+    i = 0
+    D, N = data.shape
+    C = np.zeros((N, N))
+    Gamma2 = np.zeros((N, N))
+    converged = False
+    while not converged:
+        Z = np.dot(np.linalg.inv(tau*np.dot(data.T, data) + mu2*np.identity(N)), tau*np.dot(data.T, data) + mu2*(C - Gamma2/mu2))
+        C = shrinkage(Z + Gamma2/mu2, 1/mu2)
+        C = C - np.diag(np.diag(C))
+        Gamma2 = Gamma2 + mu2*(Z-C)
+        i += 1
+        converged = (i > 50)
+    return C
+
+def shrinkage(X, tau):
+    U, Sigma, VT = SVD(X)
+    newSingularValue = []
+    for i in np.diag(Sigma):
+        if i > tau:
+            i -= tau
+        elif i < -tau:
+            i += tau
+        else:
+            i = 0
+        newSingularValue.append(i)
+    return np.dot(U, np.dot(np.diag(newSingularValue), VT))
 
 if __name__=="__main__":
     pict, labels = load_Yale_data()
-    compute_affinity_matrix(pict, 5, 5)
+    Lasso_minimization(pict[:100], 0.1, 5)
     pass

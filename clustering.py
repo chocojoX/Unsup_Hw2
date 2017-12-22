@@ -131,8 +131,10 @@ def SSC(data, n, tau, mu2):
     # data: D by N data matrix.
     # n: number of clusters
     # tau, mu2: parameter
-    #TODO
-    return
+    C = Lasso_minimization(data, mu2, tau)
+    W = np.absolute(C) + np.absolute(C.T)
+    predicted_labels = SpectralClustering(W, n)
+    return predicted_labels
 
 
 def clustering_error(label, groups, verbose=0):
@@ -169,11 +171,11 @@ if __name__=="__main__":
     #error = clustering_error(pred_labels, labels, verbose=1)
 
 
-    pred_labels = ksubspaces(data[:,:128], 2, 3, 1)
-
-    error = clustering_error(labels[:128], pred_labels, verbose = True)
+    #pred_labels = ksubspaces(data[:,:], 2, 3, 1)
+    pred_labels = SSC(data[:,:100], 2, 0.1, 5)
+    error = clustering_error(labels[:100], pred_labels, verbose = True)
     print("prediction error : %.2f%%" %(100*error))
-    print(labels[:128])
+    print(labels[:100])
     print(pred_labels)
 
 
