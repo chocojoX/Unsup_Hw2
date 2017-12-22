@@ -230,5 +230,7 @@ def test_motion_segmentation():
 
 
 if __name__ == "__main__":
-    # test_ksubspaces_clustering(n_individuals=3)
+    test_SC()
+    test_SSC()
+    test_ksubspaces_clustering()
     test_motion_segmentation()
