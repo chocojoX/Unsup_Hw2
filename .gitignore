@@ -4,3 +4,4 @@ test_notebook.ipynb
 .ipynb_checkpoints
 __pychache__/*
 *.pyc
+data/Hopk*
