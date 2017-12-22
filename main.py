@@ -25,11 +25,11 @@ def test_ksubspaces_clustering(n_individuals=2):
     else:
         n_max = data.shape[1]
     # n_max is the first index of individual of id n_individual+1
-    for d in [1, 3, 5, 9, 15]:
+    for d in [6,7,8,9,10]:
         labels = labels[:n_max]
         data = data[:, :n_max]
         # print("Starting spectral clustering")
-        pred_labels = ksubspaces(data, n_individuals, d, replicates=3)
+        pred_labels = ksubspaces(data, n_individuals, d, replicates=5)
         error = clustering_error(pred_labels, labels)
         print("prediction error for %i individuals, d=%i : %.2f%%" %(n_individuals, d, 100*error))
 

@@ -105,6 +105,7 @@ def get_random_orthogonal_matrix(D, d):
 
 def Lasso_minimization(data, mu2, tau):
     i = 0
+    data = data/(np.linalg.norm(data, axis=0).reshape(1,-1))
     D, N = data.shape
     C = np.zeros((N, N))
     Gamma2 = np.zeros((N, N))
@@ -120,17 +121,15 @@ def Lasso_minimization(data, mu2, tau):
     return C
 
 def shrinkage(X, tau):
-    U, Sigma, VT = SVD(X)
-    newSingularValue = []
-    for i in np.diag(Sigma):
-        if i > tau:
-            i -= tau
-        elif i < -tau:
-            i += tau
-        else:
-            i = 0
-        newSingularValue.append(i)
-    return np.dot(U, np.dot(np.diag(newSingularValue), VT))
+    for i in range(X.shape[0]):
+        for j in range(X.shape[1]):
+            if X[i,j] > tau:
+                X[i,j] -= tau
+            elif X[i,j] < -tau:
+                X[i,j] += tau
+            else:
+                X[i,j] = 0
+    return X
 
 if __name__=="__main__":
     pict, labels = load_Yale_data()

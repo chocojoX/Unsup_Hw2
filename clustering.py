@@ -33,7 +33,7 @@ def ksubspaces(data, n, d, replicates=1):
     # n: number of subspaces
     # d: dimension of subspaces
     # replicates: number of restart
-    precision = 0.1
+    precision = 0.01
     all_distances = []
     all_labels = []
     D, N = data.shape
@@ -163,24 +163,27 @@ if __name__=="__main__":
 
 
     #pred_labels = ksubspaces(data[:,:], 2, 3, 1)
-    n_individuals=2
+    n_individuals=10
     if n_individuals<38:
         n_max = np.where(labels==n_individuals)[0][0]
     else:
         n_max = data.shape[1]
-    for K in range(2,6):
-        for sigma in [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
-            affinity = compute_affinity_matrix(data[:,:n_max], K=K, sigma=sigma)
-            pred_labels = SpectralClustering(affinity, n=n_individuals)
-            error = clustering_error(pred_labels, labels[:n_max], verbose=1)
-            print("K={}, sigma={} : prediction error : {}".format(K,sigma,error))
+
+    for tau in [5,10,50,100]:
+        for mu in [1, 5, 10, 100]:
+            pred_labels = SSC(data[:,:n_max], n_individuals, tau, mu)
+            error = clustering_error(labels[:n_max], pred_labels, verbose = False)
+            print("prediction error for tau= %i, mu=%i : %.2f%%" %(tau, mu, 100*error))
+
+    #
+    # for K in range(2,6):
+    #     for sigma in [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
+    #         affinity = compute_affinity_matrix(data[:,:n_max], K=K, sigma=sigma)
+    #         pred_labels = SpectralClustering(affinity, n=n_individuals)
+    #         error = clustering_error(pred_labels, labels[:n_max], verbose=1)
+    #         print("K={}, sigma={} : prediction error : {}".format(K,sigma,error))
 
 
-    pred_labels = SSC(data[:,:n_max], n_individuals, 10, 100)
-    error = clustering_error(labels[:n_max], pred_labels, verbose = False)
-    print("prediction error : %.2f%%" %(100*error))
-    print(labels[:n_max])
-    print(pred_labels)
 
 
     pass
