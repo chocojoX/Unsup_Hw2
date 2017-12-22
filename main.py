@@ -109,8 +109,57 @@ def test_ksubspaces_clustering():
         print("Error for %i individuals K-subspaces clustering : %.1f%% " %(n_individuals, 100*error))
 
 
+def test_SSC():
+    print("#"*50)
+    print("Tests on Sparse Subspace Clustering")
+    print("#"*50)
+    data_, labels_ = load_Yale_data()
+    n_individuals=2
+    n_max = np.where(labels_==n_individuals)[0][0]
+    labels = labels_[:n_max]
+    data = data_[:, :n_max]
+
+
+    taus = [0.1, 1, 5, 10, 25, 50, 100]
+    mus = [1, 5, 10, 20]
+    Ks = [8]
+    best_error=100
+    best_params = {}
+    perfs = {}
+    for tau in taus:
+        for mu in mus:
+            pred_labels = SSC(data[:,:n_max], n_individuals, tau, mu)
+            error = clustering_error(labels[:n_max], pred_labels, verbose = False)
+            print("prediction error for tau= %i, mu=%i : %.2f%%" %(tau, mu, 100*error))
+            perfs[(tau, mu)] = error
+            if error<=best_error:
+                best_error = error
+                best_params['tau']=tau
+                best_params['mu'] = mu
+
+    to_plot_mu_fixed = [perfs[(tau, best_params['mu'])] for tau in taus]
+    plt.plot(taus, to_plot_mu_fixed)
+    plt.title("Evolution of error with lambda at optimal mu (with individuals 1-2)")
+    plt.ylabel("Error")
+    plt.xlabel("Tau")
+    plt.show()
+
+
+    tau = best_params['tau']
+    mu = best_params['mu']
+    for n_individuals in [2, 10, 20, 30, 38]:
+        if n_individuals<38:
+            n_max = np.where(labels_==n_individuals)[0][0]
+        else:
+            n_max = data_.shape[1]
+        labels = labels_[:n_max]
+        data = data_[:, :n_max]
+        pred_labels = SSC(data[:,:n_max], n_individuals, tau, mu)
+        error = clustering_error(pred_labels, labels)
+        print("Error for %i individuals K-subspaces clustering : %.1f%% " %(n_individuals, 100*error))
 
 
 if __name__ == "__main__":
-    # test_SC()
+    test_SC()
     test_ksubspaces_clustering()
+    test_SSC()
