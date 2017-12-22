@@ -71,7 +71,7 @@ def test_ksubspaces_clustering():
 
 
     dimensions = [5,6,7,8,9,10,11,12]
-    Ks = [8]
+    Ks = [3]
     best_error=100
     best_params = {}
     perfs = {}
@@ -165,5 +165,5 @@ def test_SSC():
 
 if __name__ == "__main__":
     test_SC()
-    test_ksubspaces_clustering()
     test_SSC()
+    test_ksubspaces_clustering()
