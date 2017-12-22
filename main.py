@@ -9,7 +9,7 @@ def test_spectral_clustering(n_individuals=2):
     else:
         n_max = data.shape[1]
     # n_max is the first index of individual of id n_individual+1
-    for sigma in [10, 100, 500, 1000, 5000, 10000, 50000]:
+    for sigma in [0.1, 0.3, 0.3, 0.5, 0.7, 0.9, 1]:
         affinity = compute_affinity_matrix(data, K=3, sigma=sigma, n_pictures=n_max)
         labels = labels[:n_max]
         # print("Starting spectral clustering")
