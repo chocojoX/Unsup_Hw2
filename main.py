@@ -80,12 +80,15 @@ def test_ksubspaces_clustering():
         # print("Starting spectral clustering")
             pred_labels = ksubspaces(data, n_individuals, d, replicates=K)
             error = clustering_error(pred_labels, labels)
-            print("prediction error for %i individuals, dimension of subspaces : %i, %i replicates : %.2f%%" %(n_individuals, d, K, 100*error))
+            # print("prediction error for %i individuals, dimension of subspaces : %i, %i replicates : %.2f%%" %(n_individuals, d, K, 100*error))
             perfs[(K, d)] = error
             if error<best_error:
                 best_error = error
                 best_params['K']=K
                 best_params['d'] = d
+
+    print("Testing on individual 1-2 finished, the best parameter is, for %i replicates, dimension=%i" %(best_params['K'], best_params['d']))
+
 
     to_plot_K_fixed = [perfs[(best_params['K'], d)] for d in dimensions]
     plt.plot(dimensions, to_plot_K_fixed)
@@ -105,7 +108,7 @@ def test_ksubspaces_clustering():
         labels = labels_[:n_max]
         data = data_[:, :n_max]
         pred_labels = ksubspaces(data, n_individuals, d, replicates=K)
-        error = clustering_error(pred_labels, labels)
+        error = clustering_error(labels, pred_labels)
         print("Error for %i individuals K-subspaces clustering : %.1f%% " %(n_individuals, 100*error))
 
 
@@ -128,14 +131,15 @@ def test_SSC():
     perfs = {}
     for tau in taus:
         for mu in mus:
-            pred_labels = SSC(data[:,:n_max], n_individuals, tau, mu)
-            error = clustering_error(labels[:n_max], pred_labels, verbose = False)
-            print("prediction error for tau= %i, mu=%i : %.2f%%" %(tau, mu, 100*error))
+            pred_labels = SSC(data, n_individuals, tau, mu)
+            error = clustering_error(labels, pred_labels, verbose = False)
+            # print("prediction error for tau= %i, mu=%i : %.2f%%" %(tau, mu, 100*error))
             perfs[(tau, mu)] = error
             if error<=best_error:
                 best_error = error
                 best_params['tau']=tau
                 best_params['mu'] = mu
+    print("Testing on individual 1-2 finished, the best parameters are, for tau= %.1f, mu=%i" %(best_params['tau'], best_params['mu']))
 
     to_plot_mu_fixed = [perfs[(tau, best_params['mu'])] for tau in taus]
     plt.plot(taus, to_plot_mu_fixed)
@@ -156,7 +160,7 @@ def test_SSC():
         data = data_[:, :n_max]
         pred_labels = SSC(data[:,:n_max], n_individuals, tau, mu)
         error = clustering_error(pred_labels, labels)
-        print("Error for %i individuals K-subspaces clustering : %.1f%% " %(n_individuals, 100*error))
+        print("Error for %i individuals SSC : %.1f%% " %(n_individuals, 100*error))
 
 
 if __name__ == "__main__":
