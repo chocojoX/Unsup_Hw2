@@ -36,6 +36,7 @@ def ksubspaces(data, n, d, replicates=1):
     all_distances = []
     all_labels = []
     D, N = data.shape
+    data = data/(np.linalg.norm(data, axis=0).reshape(1,-1))
 
     for rep in range(replicates):
         """ Initialization """
@@ -68,9 +69,7 @@ def ksubspaces(data, n, d, replicates=1):
                     distances = distances.reshape(1,len(distances))
                     first = False
                 else:
-                    a = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2,
-                                axis=0
-                              )
+                    a = np.sum((np.dot(np.eye(D)-U_Ut, data-mu))**2, axis=0)
                     a = a.reshape(1, len(a))
                     distances = np.concatenate((distances,a),axis = 0)
 
