@@ -154,10 +154,24 @@ if __name__=="__main__":
             pred_labels = SpectralClustering(affinity, n=2)
             error = clustering_error(pred_labels, labels[:128], verbose=1)
 
+<<<<<<< HEAD
             #pred_labels = ksubspaces(data[:,:], 2, 3, 1)
             #pred_labels = SSC(data[:,:100], 2, 0.1, 5)
             #error = clustering_error(labels[:100], pred_labels, verbose = True)
             print("K={}, sigma={} : prediction error : {}".format(K,sigma,error))
+=======
+    #pred_labels = ksubspaces(data[:,:], 2, 3, 1)
+    n_individuals=5
+    if n_individuals<38:
+        n_max = np.where(labels==n_individuals)[0][0]
+    else:
+        n_max = data.shape[1]
+    pred_labels = SSC(data[:,:n_max], n_individuals, 10, 100)
+    error = clustering_error(labels[:n_max], pred_labels, verbose = False)
+    print("prediction error : %.2f%%" %(100*error))
+    print(labels[:n_max])
+    print(pred_labels)
+>>>>>>> cc3296c3e10cba5eed5a2eb03695101585f9e776
 
 
     pass
