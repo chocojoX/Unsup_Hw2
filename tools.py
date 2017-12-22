@@ -3,6 +3,7 @@ import scipy.io as spio
 import time
 import os
 from scipy.spatial.distance import cdist
+from sklearn import decomposition
 
 def load_Yale_data():
     data = spio.loadmat("data/ExtendedYaleB.mat")
@@ -12,11 +13,14 @@ def load_Yale_data():
     return pictures, labels
 
 
-def SVD(X):
-    # Return, U, Sigma, V such that X = U.Sigma.V^T
-    U, Sigma, V = np.linalg.svd(X, full_matrices=False)
+def SVD(X, full_matrices=False, d=2000):
+    # Return, U only #TODO if neeed change this to another function to have a proper SVD
+    # U, Sigma, V = np.linalg.svd(X, full_matrices=full_matrices)
+    svd = decomposition.TruncatedSVD(n_components=d)
+    svd.fit(X)
+    U = np.transpose(svd.components_)
     # Careful, np.linalg.svd return U, sigma, transpose(V) --> V need to be transposed.
-    return U, np.diag(Sigma), np.transpose(V)
+    return U
 
 
 def compute_affinity_matrix(data, K, sigma, n_pictures=2414, load_from_file=False):

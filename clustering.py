@@ -2,6 +2,8 @@ from tools import *
 import numpy as np
 from sklearn import cluster
 from munkres import Munkres
+import scipy
+import time
 
 
 def SpectralClustering(Affinity, n):
@@ -51,31 +53,11 @@ def ksubspaces(data, n, d, replicates=1):
     #total_distance = 99999999999999999999999
     w_old = np.zeros((n, N))
     n_iter = 0
-    while not converged and n_iter < 8:
-        print("n_iter = %i"%(n_iter))
+    while not converged and n_iter < 10:
         n_iter += 1
-        #old_total_distance = total_distance
-        #total_distance = 0
 
         """ Find best subspace for each data point """
         w = np.zeros((n, N))
-        """
-        for j in range(N):
-            x = data[:, j]
-            min_dist = 999999999999999999
-            best_subspace = -1
-            for subspace_idx in range(n):
-                # U = U_matrices[subspace_idx]
-                mu = mu_vectors[subspace_idx]
-                U_Ut = U_Ut_matrices[subspace_idx]
-                dist = np.sum( (np.dot(np.eye(D)-U_Ut, x-mu))**2 )
-                if dist<min_dist:
-                    min_dist=dist
-                    best_subspace = subspace_idx
-
-            w[best_subspace, j] = 1
-            total_distance += min_dist/N
-        """
         first = True
         for subspace_idx in range(n):
             mu = mu_vectors[subspace_idx].reshape(D,1)
@@ -97,15 +79,15 @@ def ksubspaces(data, n, d, replicates=1):
 
         """ Find an estimation of the best subspaces given segmentation """
         for subspace_idx in range(n):
+            t_mu=time.time()
             idx = np.where(w[subspace_idx, :]==1)[0]
             mu = np.zeros((data.shape[0]))
             for l in idx:
                 mu += data[:, l]/len(idx)
             mu_vectors[subspace_idx] = mu
 
-            covariance = np.sum(np.dot(data[:, l].reshape(-1, 1), data[:, l].reshape(1, -1)) for l in idx)
-            print(covariance.shape)
-            U, S, V = SVD(covariance)
+            covariance = np.dot(data[:, idx], np.transpose(data[:, idx]))
+            U = SVD(covariance, d=d)
             U = U[:, :d]
             U_matrices[subspace_idx] = U
             U_Ut_matrices[subspace_idx] = np.dot(U, np.transpose(U))
