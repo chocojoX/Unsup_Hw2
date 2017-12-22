@@ -34,6 +34,9 @@ def ksubspaces(data, n, d, replicates=1):
     # d: dimension of subspaces
     # replicates: number of restart
 
+    total_distances = []  # used for convergence criteria
+    precision = 0.1
+
     D, N = data.shape
     """ Initialization """
     U_matrices = []
@@ -49,10 +52,9 @@ def ksubspaces(data, n, d, replicates=1):
     """ Iterations """
     converged = False
     Y = np.zeros((d, N))
-    #total_distance = 99999999999999999999999
     w_old = np.zeros((n, N))
     n_iter = 0
-    while not converged and n_iter < 10:
+    while not converged and n_iter < 20:
         n_iter += 1
 
         """ Find best subspace for each data point """
@@ -71,7 +73,7 @@ def ksubspaces(data, n, d, replicates=1):
                           )
                 a = a.reshape(1, len(a))
                 distances = np.concatenate((distances,a),axis = 0)
-
+        total_distances.append(np.sum(np.min(distances,axis=0)))
         indexes = np.argmin(distances,axis=0)
 
         for j in range(N):
@@ -99,9 +101,10 @@ def ksubspaces(data, n, d, replicates=1):
             U_matrices.append(U)
             U_Ut_matrices.append(np.dot(U, U.T))
 
-        #print(total_distance)
-        if np.sum(np.abs(w_old - w)) == 0:
-            converged = True
+
+        if n_iter > 2:
+            if total_distances[-2] - total_distances[-1] < precision:
+                converged = True
         w_old = np.copy(w)
 
     pred_labels = np.argmax(w, axis=0)
@@ -146,32 +149,28 @@ def clustering_error(label, groups, verbose=0):
 
 if __name__=="__main__":
     data, labels = load_Yale_data()
+    print(np.unique(labels[:9*64]))
+    print(np.unique(labels[:10*64]))
+    print(np.unique(labels[:11*64]))
+    print(np.unique(labels[:12*64]))
+    affinity = compute_affinity_matrix(data[:,:15*64], K=3, sigma=0.3)
+    pred_labels = SpectralClustering(affinity, n=15)
 
+    print(np.unique(labels[:10*64]))
+    print(np.unique(pred_labels))
+    error = clustering_error(labels[:15*64],pred_labels, verbose=1)
 
-    for K in range(2,6):
-        for sigma in [0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]:
-            affinity = compute_affinity_matrix(data[:,:128], K=K, sigma=sigma)
-            pred_labels = SpectralClustering(affinity, n=2)
-            error = clustering_error(pred_labels, labels[:128], verbose=1)
-
-<<<<<<< HEAD
-            #pred_labels = ksubspaces(data[:,:], 2, 3, 1)
-            #pred_labels = SSC(data[:,:100], 2, 0.1, 5)
-            #error = clustering_error(labels[:100], pred_labels, verbose = True)
-            print("K={}, sigma={} : prediction error : {}".format(K,sigma,error))
-=======
-    #pred_labels = ksubspaces(data[:,:], 2, 3, 1)
-    n_individuals=5
-    if n_individuals<38:
-        n_max = np.where(labels==n_individuals)[0][0]
-    else:
-        n_max = data.shape[1]
-    pred_labels = SSC(data[:,:n_max], n_individuals, 10, 100)
-    error = clustering_error(labels[:n_max], pred_labels, verbose = False)
+    #red_labels = ksubspaces(data[:,:128], 2, 3, 1)
+    #n_individuals=5
+    #if n_individuals<38:
+    #    n_max = np.where(labels==n_individuals)[0][0]
+    #else:
+    #    n_max = data.shape[1]
+    #pred_labels = SSC(data[:,:n_max], n_individuals, 10, 100)
+    #error = clustering_error(labels[:n_max], pred_labels, verbose = False)
     print("prediction error : %.2f%%" %(100*error))
-    print(labels[:n_max])
-    print(pred_labels)
->>>>>>> cc3296c3e10cba5eed5a2eb03695101585f9e776
+    #print(labels[:n_max])
+    #print(pred_labels)
 
 
     pass
