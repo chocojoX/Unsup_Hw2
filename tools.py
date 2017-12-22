@@ -13,13 +13,17 @@ def load_Yale_data():
     return pictures, labels
 
 
-def SVD(X, full_matrices=False, d=2000):
-    # Return, U only #TODO if neeed change this to another function to have a proper SVD
-    # U, Sigma, V = np.linalg.svd(X, full_matrices=full_matrices)
+def SVD(X):
+    # Return, U, Sigma, V such that X = U.Sigma.V^T
+    U, Sigma, V = np.linalg.svd(X, full_matrices=False)
+    # Careful, np.linalg.svd return U, sigma, transpose(V) --> V need to be transposed.
+    return U, np.diag(Sigma), np.transpose(V)
+
+def partial_SVD(X, d=2000):
+    # Return truncated U only
     svd = decomposition.TruncatedSVD(n_components=d)
     svd.fit(X)
     U = np.transpose(svd.components_)
-    # Careful, np.linalg.svd return U, sigma, transpose(V) --> V need to be transposed.
     return U
 
 
@@ -99,9 +103,10 @@ def Lasso_minimization(data, mu2, tau):
     D, N = data.shape
     C = np.zeros((N, N))
     Gamma2 = np.zeros((N, N))
+    XT_X = np.dot(data.T, data)
     converged = False
     while not converged:
-        Z = np.dot(np.linalg.inv(tau*np.dot(data.T, data) + mu2*np.identity(N)), tau*np.dot(data.T, data) + mu2*(C - Gamma2/mu2))
+        Z = np.dot(np.linalg.inv(tau*XT_X + mu2*np.identity(N)), tau*XT_X + mu2*(C - Gamma2/mu2))
         C = shrinkage(Z + Gamma2/mu2, 1/mu2)
         C = C - np.diag(np.diag(C))
         Gamma2 = Gamma2 + mu2*(Z-C)

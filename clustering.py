@@ -94,7 +94,7 @@ def ksubspaces(data, n, d, replicates=1):
                 mu_vectors.append(mu)
 
                 covariance = np.dot(data[:, idx], np.transpose(data[:, idx]))
-                U = SVD(covariance, d=d)
+                U = partial_SVD(covariance, d=d)
                 U = U[:, :d]
                 U_matrices.append(U)
                 U_Ut_matrices.append(np.dot(U, U.T))
