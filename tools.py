@@ -12,6 +12,24 @@ def load_Yale_data():
     pictures = data['EYALEB_DATA']
     return pictures, labels
 
+def load_Hopkins_data(dataset):
+    if dataset == "cars2B":
+        data = spio.loadmat("data/Hopkins155/cars2B/cars2B_truth.mat")
+    elif dataset == "1R2RC":
+        data = spio.loadmat("data/Hopkins155/1R2RC/1R2RC_truth.mat")
+    elif dataset == "kanatani1":
+        data = spio.loadmat("data/Hopkins155/kanatani1/kanatani1_truth.mat")
+    else :
+        raise Exception("Unknown dataset")
+    n = max(data['s'])
+    N = data['x'].shape[1]
+    F = data['x'].shape[2]
+    D = 2*F;
+    pictures = np.reshape(data['x'][1:,:],(N,D))
+    labels = data['s'] - 1
+    labels = np.reshape(labels,(1, labels.shape[0]))
+    return pictures.T, labels[0], n[0]
+
 
 def SVD(X):
     # Return, U, Sigma, V such that X = U.Sigma.V^T
@@ -27,7 +45,7 @@ def partial_SVD(X, d=2000):
     return U
 
 
-def compute_affinity_matrix(data, K, sigma, n_pictures, load_from_file=False, verbose=0):
+def compute_affinity_matrix(data, K, sigma, n_pictures, load_from_file=False, verbose=0, dataset_name= "Yale"):
     # data is D by N
     # K : number of closest neighbours
     # sigma parameter of the gaussian
@@ -39,8 +57,9 @@ def compute_affinity_matrix(data, K, sigma, n_pictures, load_from_file=False, ve
 
     # Computes distance matrix
 
-    if os.path.exists("data/distance_matrix.npy"):
-        distance_matrix = np.load("data/distance_matrix.npy")
+    matrix_path = str("data/distance_matrix_"+dataset_name+".npy")
+    if os.path.exists(matrix_path):
+        distance_matrix = np.load(matrix_path)
     else:
         print("Computing distance matrix, this may take a while but will only be performed once")
 
@@ -56,11 +75,12 @@ def compute_affinity_matrix(data, K, sigma, n_pictures, load_from_file=False, ve
         distance_matrix = cdist(data_total.T,data_total.T, 'sqeuclidean')
         t1 = time.time()
         print("Time to compute distance matrix : %.1f s" %(t1-t0))
-        np.save("data/distance_matrix.npy", distance_matrix)
+        np.save(matrix_path, distance_matrix)
 
     # Computes affinity matrix
-    if os.path.exists("data/affinity_matrix.npy") and load_from_file:
-        Affinity = np.load("data/affinity_matrix.npy")
+    matrix_path = str("data/affinity_matrix_"+dataset_name+".npy")
+    if os.path.exists(matrix_path) and load_from_file:
+        Affinity = np.load(matrix_path)
     else:
         distance_matrix = distance_matrix[:n_pictures, :n_pictures]
         for i in range(n_pictures):
@@ -125,6 +145,7 @@ def shrinkage(X, tau):
 
 
 if __name__=="__main__":
-    pict, labels = load_Yale_data()
-    Lasso_minimization(pict[:100], 0.1, 5)
+    pict, labels, n = load_Hopkins_data()
+    print(pict.shape)
+    print(labels)
     pass

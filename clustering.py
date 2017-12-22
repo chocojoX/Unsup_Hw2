@@ -154,7 +154,7 @@ def clustering_error(label, groups, verbose=0):
 
 
 if __name__=="__main__":
-    data, labels = load_Yale_data()
+    data, labels, n_individuals = load_Hopkins_data("kanatani1")
 
     #affinity = compute_affinity_matrix(data, K=5, sigma=2e6)
 
@@ -163,16 +163,11 @@ if __name__=="__main__":
 
 
     #pred_labels = ksubspaces(data[:,:], 2, 3, 1)
-    n_individuals=10
-    if n_individuals<38:
-        n_max = np.where(labels==n_individuals)[0][0]
-    else:
-        n_max = data.shape[1]
-
-    for tau in [5,10,50,100]:
-        for mu in [1, 5, 10, 100]:
-            pred_labels = SSC(data[:,:n_max], n_individuals, tau, mu)
-            error = clustering_error(labels[:n_max], pred_labels, verbose = False)
+    print("Number of groups : %i"%(n_individuals))
+    for tau in [10]:
+        for mu in range(3,4):
+            pred_labels = SSC(data, n_individuals, tau, mu)
+            error = clustering_error(labels, pred_labels, verbose = False)
             print("prediction error for tau= %i, mu=%i : %.2f%%" %(tau, mu, 100*error))
 
     #
