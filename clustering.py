@@ -33,6 +33,7 @@ def ksubspaces(data, n, d, replicates=1):
     # n: number of subspaces
     # d: dimension of subspaces
     # replicates: number of restart
+    precision = 0.1
     all_distances = []
     all_labels = []
     D, N = data.shape
@@ -54,6 +55,7 @@ def ksubspaces(data, n, d, replicates=1):
         converged = False
         Y = np.zeros((d, N))
         w_old = np.zeros((n, N))
+        distance_old = 1e5
         n_iter = 0
         while not converged and n_iter < 10:
             n_iter += 1
@@ -74,7 +76,8 @@ def ksubspaces(data, n, d, replicates=1):
                     distances = np.concatenate((distances,a),axis = 0)
 
             indexes = np.argmin(distances,axis=0)
-            total_distance = np.sum([distances[indexes[k], k] for k in range(len(indexes))])
+            #total_distance = np.sum([distances[indexes[k], k] for k in range(len(indexes))])
+            total_distance = np.sum(np.min(distances, axis=0))
 
             for j in range(N):
                 w[indexes[j],j] = 1
@@ -98,8 +101,11 @@ def ksubspaces(data, n, d, replicates=1):
                 U_Ut_matrices.append(np.dot(U, U.T))
 
             #print(total_distance)
-            if np.sum(np.abs(w_old - w)) == 0:
-                converged = True
+            if n_iter > 2:
+                #assert(distance_old - total_distance >=0)
+                if distance_old - total_distance < precision:
+                    converged = True
+            distance_old = np.copy(total_distance)
             w_old = np.copy(w)
 
         pred_labels = np.argmax(w, axis=0)
