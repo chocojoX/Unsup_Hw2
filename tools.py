@@ -13,34 +13,34 @@ def load_Yale_data():
     return pictures, labels
 
 
-def SVD(X):
-    # Return, U, Sigma, V such that X = U.Sigma.V^T
-    U, Sigma, V = np.linalg.svd(X, full_matrices=False)
-    # Careful, np.linalg.svd return U, sigma, transpose(V) --> V need to be transposed.
-    return U, np.diag(Sigma), np.transpose(V)
-
-def partial_SVD(X, d=2000):
-    # Return truncated U only
+def SVD(X, full_matrices=False, d=2000):
+    # Return, U only #TODO if neeed change this to another function to have a proper SVD
+    # U, Sigma, V = np.linalg.svd(X, full_matrices=full_matrices)
     svd = decomposition.TruncatedSVD(n_components=d)
     svd.fit(X)
     U = np.transpose(svd.components_)
+    # Careful, np.linalg.svd return U, sigma, transpose(V) --> V need to be transposed.
     return U
 
 
-def compute_affinity_matrix(data, K, sigma, n_pictures=2414, load_from_file=False):
+def compute_affinity_matrix(data, K, sigma, load_from_file=False, verbose=0):
     # data is D by N
     # K : number of closest neighbours
     # sigma parameter of the gaussian
     D, N = data.shape
+    n_pictures = N
+    data_normalized = data/(np.linalg.norm(data, axis=0).reshape(1,-1))
+
     Affinity = np.zeros((n_pictures, n_pictures))
     distance_matrix = np.zeros((N, N))
 
     # Computes distance matrix
 
-    if os.path.exists("data/distance_matrix.npy"):
+    if os.path.exists("data/distance_matrix.npy") and load_from_file:
         distance_matrix = np.load("data/distance_matrix.npy")
     else:
-        print("Computing distance matrix")
+        if verbose>0:
+            print("Computing distance matrix")
 
         t0 = time.time()
         """
@@ -51,11 +51,11 @@ def compute_affinity_matrix(data, K, sigma, n_pictures=2414, load_from_file=Fals
                 distance_matrix[j, i] = dist
         """
 
-        #We need to square it to be equal to before, but to we really need?
-        distance_matrix = cdist(data.T,data.T)**2
+        distance_matrix = cdist(data_normalized.T,data_normalized.T, 'sqeuclidean')
         t1 = time.time()
-        print("Time to compute distance matrix : %.1f s" %(t1-t0))
-        np.save("data/distance_matrix.npy", distance_matrix)
+        if verbose>0:
+            print("Time to compute distance matrix : %.1f s" %(t1-t0))
+        #np.save("data/distance_matrix.npy", distance_matrix)
 
     # Computes affinity matrix
     if os.path.exists("data/affinity_matrix.npy") and load_from_file:
@@ -63,13 +63,14 @@ def compute_affinity_matrix(data, K, sigma, n_pictures=2414, load_from_file=Fals
     else:
         distance_matrix = distance_matrix[:n_pictures, :n_pictures]
         for i in range(n_pictures):
+            #argsort
             distances = distance_matrix[i, :]
             lowest = np.argsort(distances)[:(K+1)]
             for j in range(1, K+1):
                 # Not taking the lowest distance which would be 0 = d(x, x)
                 dist = distances[lowest[j]]
-                Affinity[i, lowest[j]] += np.exp(-dist/(2*sigma**2))/2
-                Affinity[lowest[j], i] += np.exp(-dist/(2*sigma**2))/2
+                Affinity[i, lowest[j]] += np.exp(-dist/(2*sigma**2))
+                Affinity[lowest[j], i] += np.exp(-dist/(2*sigma**2))
                 # Symmetrizes the affinity matrix
         # np.save("data/affinity_matrix.npy", Affinity)
     return Affinity
@@ -103,10 +104,9 @@ def Lasso_minimization(data, mu2, tau):
     D, N = data.shape
     C = np.zeros((N, N))
     Gamma2 = np.zeros((N, N))
-    XT_X = np.dot(data.T, data)
     converged = False
     while not converged:
-        Z = np.dot(np.linalg.inv(tau*XT_X + mu2*np.identity(N)), tau*XT_X + mu2*(C - Gamma2/mu2))
+        Z = np.dot(np.linalg.inv(tau*np.dot(data.T, data) + mu2*np.identity(N)), tau*np.dot(data.T, data) + mu2*(C - Gamma2/mu2))
         C = shrinkage(Z + Gamma2/mu2, 1/mu2)
         C = C - np.diag(np.diag(C))
         Gamma2 = Gamma2 + mu2*(Z-C)
