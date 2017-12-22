@@ -1,8 +1,12 @@
 from clustering import *
 from tools import *
+import matplotlib.pyplot as plt
 
 
 def test_SC():
+    print("#"*50)
+    print("Tests on Spectral Clustering")
+    print("#"*50)
     data_, labels_ = load_Yale_data()
     n_individuals=2
     n_max = np.where(labels_==n_individuals)[0][0]
@@ -25,7 +29,7 @@ def test_SC():
                 best_params['K']=K
                 best_params['sigma'] = sigma
     print("Testing on individual 1-2 finished, best parameters are : K=%i, sigma=%.1f" %(best_params['K'], best_params['sigma']))
-    import matplotlib.pyplot as plt
+
     to_plot_K_fixed = [perfs[(best_params['K'], sigma)] for sigma in sigmas]
     plt.plot(sigmas, to_plot_K_fixed)
     plt.title("Evolution of error with Sigma at optimal K (with individuals 1-2)")
@@ -55,22 +59,58 @@ def test_SC():
         print("Error for %i individuals spectral clustering : %.1f%% " %(n_individuals, 100*error))
 
 
-def test_ksubspaces_clustering(n_individuals=2):
-    data, labels = load_Yale_data()
-    if n_individuals<38:
-        n_max = np.where(labels==n_individuals)[0][0]
-    else:
-        n_max = data.shape[1]
-    # n_max is the first index of individual of id n_individual+1
-    for d in [6,7,8,9,10]:
-        labels = labels[:n_max]
-        data = data[:, :n_max]
+def test_ksubspaces_clustering():
+    print("#"*50)
+    print("Tests on K-subspaces clustering")
+    print("#"*50)
+    data_, labels_ = load_Yale_data()
+    n_individuals=2
+    n_max = np.where(labels_==n_individuals)[0][0]
+    labels = labels_[:n_max]
+    data = data_[:, :n_max]
+
+
+    dimensions = [5,6,7,8,9,10,11,12]
+    Ks = [8]
+    best_error=100
+    best_params = {}
+    perfs = {}
+    for d in dimensions:
+        for K in Ks:
         # print("Starting spectral clustering")
-        pred_labels = ksubspaces(data, n_individuals, d, replicates=5)
+            pred_labels = ksubspaces(data, n_individuals, d, replicates=K)
+            error = clustering_error(pred_labels, labels)
+            print("prediction error for %i individuals, dimension of subspaces : %i, %i replicates : %.2f%%" %(n_individuals, d, K, 100*error))
+            perfs[(K, d)] = error
+            if error<best_error:
+                best_error = error
+                best_params['K']=K
+                best_params['d'] = d
+
+    to_plot_K_fixed = [perfs[(best_params['K'], d)] for d in dimensions]
+    plt.plot(dimensions, to_plot_K_fixed)
+    plt.title("Evolution of error with dimension with 8 replicates (with individuals 1-2)")
+    plt.ylabel("Error")
+    plt.xlabel("dimension of subspaces")
+    plt.show()
+
+
+    K = best_params['K']
+    d = best_params['d']
+    for n_individuals in [2, 10, 20, 30, 38]:
+        if n_individuals<38:
+            n_max = np.where(labels_==n_individuals)[0][0]
+        else:
+            n_max = data_.shape[1]
+        labels = labels_[:n_max]
+        data = data_[:, :n_max]
+        pred_labels = ksubspaces(data, n_individuals, d, replicates=K)
         error = clustering_error(pred_labels, labels)
-        print("prediction error for %i individuals, d=%i : %.2f%%" %(n_individuals, d, 100*error))
+        print("Error for %i individuals K-subspaces clustering : %.1f%% " %(n_individuals, 100*error))
+
+
 
 
 if __name__ == "__main__":
-    # test_ksubspaces_clustering(n_individuals=3)
-    test_SC()
+    # test_SC()
+    test_ksubspaces_clustering()

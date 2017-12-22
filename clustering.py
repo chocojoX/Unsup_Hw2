@@ -55,9 +55,9 @@ def ksubspaces(data, n, d, replicates=1):
         converged = False
         Y = np.zeros((d, N))
         w_old = np.zeros((n, N))
-        distance_old = 1e5
+        distance_old = 1e10
         n_iter = 0
-        while not converged and n_iter < 10:
+        while not converged and n_iter < 6:
             n_iter += 1
 
             """ Find best subspace for each data point """
