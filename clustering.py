@@ -112,7 +112,6 @@ def ksubspaces(data, n, d, replicates=1):
                         )
 
             U, S, V = SVD(covariance)
-            assert all(S[i,i] >= S[i+1,i+1] for i in range(len(S)-1))
             U = U[:, :d]
             U_matrices.append(U)
             U_Ut_matrices.append(np.dot(U, U.T))
