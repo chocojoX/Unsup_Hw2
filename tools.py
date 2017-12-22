@@ -121,15 +121,11 @@ def Lasso_minimization(data, mu2, tau):
     return C
 
 def shrinkage(X, tau):
-    for i in range(X.shape[0]):
-        for j in range(X.shape[1]):
-            if X[i,j] > tau:
-                X[i,j] -= tau
-            elif X[i,j] < -tau:
-                X[i,j] += tau
-            else:
-                X[i,j] = 0
+    X[np.abs(X) <= tau] = 0
+    X[X >= tau] -= tau
+    X[X <= -tau] += tau
     return X
+
 
 if __name__=="__main__":
     pict, labels = load_Yale_data()
